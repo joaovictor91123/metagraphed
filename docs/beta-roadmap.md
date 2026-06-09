@@ -26,7 +26,7 @@ Locked decisions:
 
 - **Edge / moat:** coverage completeness, framed as _trustworthy, verified_
   completeness.
-- **Frontend:** `metagraphed-ui` (separately owned) stays a **separate
+- **Frontend:** `jsonbored/metagraph-finder` (Lovable-owned) stays a **separate
   Cloudflare Worker** from the backend.
 - **Beta differentiator:** enable the read-only RPC proxy (with Cloudflare WAF +
   rate limiting as prerequisites).
@@ -57,17 +57,29 @@ subnets and demonstrate the product to the broader ecosystem.
 
 ### P0 — Truth and data quality
 
-1. **Gittensor (SN74) adapter ships degraded data.**
+1. **Gittensor (SN74) adapter ships degraded data (operational, not a code bug).**
    `registry/adapters/latest/gittensor.json` currently shows `Bad credentials`
    (401), all 18 repos at `html-fallback` with `null` `pushed_at`/`open_issues_count`,
-   and `captured_count: 0`. Root cause: the snapshot ran without a valid
-   `GITHUB_TOKEN` (`scripts/snapshot-adapters.mjs` reads `process.env.GITHUB_TOKEN`).
-   Fix token plumbing so the published adapter carries real repository metadata.
-2. **Epoch-zero timestamps in published artifacts.** Deterministic builds stamp
-   `1970-01-01T00:00:00.000Z` into `generated_at`/`verified_at`. This is correct
-   for reproducibility but renders as "Jan 1 1970" to consumers and undercuts the
-   freshness/completeness story. Add a real `published_at` / `as_of` field
-   distinct from the deterministic build stamp.
+   and `captured_count: 0` — committed from a local, tokenless, epoch-stamped run.
+   The snapshot code is already hardened: `scripts/snapshot-adapters.mjs` reads
+   `GITHUB_TOKEN`/`GH_TOKEN`, warns and carries forward on 401, and honors
+   `METAGRAPH_REQUIRE_ADAPTER_AUTH=1` to fail closed — and `sync-subnets.yml`
+   already sets that guard and passes the token. Remaining work is **operational**:
+   regenerate the committed adapter via a successful tokened sync run so real
+   repository metadata ships. Note `publish-cloudflare.yml` does not re-snapshot
+   adapters; it publishes whatever is committed, so a guard there (or a validator
+   that rejects an all-`html-fallback` adapter) is the optional belt-and-suspenders.
+2. **Epoch-zero timestamps in published artifacts.** _Done._ Builds stamp
+   `1970-01-01T00:00:00.000Z` into `generated_at` via `buildTimestamp()`
+   deliberately — byte-identical artifacts let R2 delta-upload skip unchanged
+   files — so `generated_at` stays a deterministic content marker. A real
+   `published_at` now rides alongside it: `lib.publishedAt()` reads
+   `METAGRAPH_PUBLISHED_AT` (set by `publish-cloudflare.yml`), `build-summary.json`
+   carries it (it is excluded from the artifact digest set, so hashing/changelog
+   are untouched), the KV pointer (`metagraph:latest`) carries it, and the Worker
+   surfaces it as envelope `meta.published_at`. The pointer read happens only on
+   origin misses (the `/api/v1` routes are edge-cached), so it is not a per-user
+   hot-path cost; it is typed in `ResponseMeta`/`BuildSummaryArtifact` for the UI.
 
 ### P1 — Beta launch readiness
 
@@ -85,8 +97,10 @@ subnets and demonstrate the product to the broader ecosystem.
 5. **Two-Worker routing is a real config change.** `wrangler.jsonc` uses
    `custom_domain: true`, which binds the entire apex to one Worker (see
    architecture section).
-6. **Versioning hygiene.** `package.json` is `0.0.0`; set `0.1.0-beta`. Keep the
-   `CONTRACT_VERSION` date scheme and document the `/api/v1` stability contract.
+6. **Versioning hygiene.** _Done:_ `package.json` set to `0.1.0-beta.0` (nothing
+   embeds the package version into artifacts, so this is artifact-neutral). The
+   `CONTRACT_VERSION` date scheme stays; the `/api/v1` stability contract is now
+   documented in `docs/api-stability.md`.
 
 ### P1/P2 — RPC proxy (beta differentiator)
 
@@ -148,7 +162,7 @@ examples):
   route patterns `metagraph.sh/api/*`, `metagraph.sh/metagraph/*`,
   `metagraph.sh/rpc/*`. Keep the `ASSETS` binding only for the compact
   `public/metagraph/*` artifacts. Drop SPA-serving responsibility.
-- **Frontend Worker (`metagraphed-ui`)** — its own `wrangler` project, route
+- **Frontend Worker (`metagraph-finder`)** — its own `wrangler` project, route
   `metagraph.sh/*` (catch-all, lowest precedence). Serves the SPA; its API base
   URL is same-origin `/api/v1`, so no CORS and no cross-origin cookies.
 - Cloudflare matches more-specific routes first, so `/api/*` and friends hit the
@@ -167,19 +181,22 @@ guarantees); and a handful of copy-paste example queries against the live beta.
 
 ### Phase 0 — Truth fixes (unblocks a credible beta)
 
-- Fix `GITHUB_TOKEN` plumbing so published Gittensor/Allways adapters carry real
-  repository metadata (Finding 1).
-- Add a real `published_at` / `as_of` field distinct from the deterministic build
-  stamp (Finding 2).
-- Set `package.json` to `0.1.0-beta`; document the `/api/v1` stability contract
-  (Finding 6).
+- **Done:** `package.json` → `0.1.0-beta.0`; `/api/v1` stability contract written
+  to `docs/api-stability.md` (Finding 6).
+- **Done:** serving-layer `published_at` via `lib.publishedAt()` +
+  `build-summary.json` + KV pointer + Worker `meta.published_at`, typed in the
+  schema; deterministic `generated_at` preserved (Finding 2).
+- **Done (code):** adapter snapshot hardened — `GITHUB_TOKEN`/`GH_TOKEN`, 401
+  carry-forward, `METAGRAPH_REQUIRE_ADAPTER_AUTH=1` wired in `sync-subnets.yml`
+  (Finding 1). **Remaining (ops, needs a CI token):** regenerate the committed
+  Gittensor/Allways adapters via a successful tokened sync run.
 
 ### Phase 1 — Beta launch
 
 - Confirm a green production publish and a passing `npm run smoke:live`
   (Finding 3).
 - Restructure routing to two Workers via zone routes; coordinate the
-  `metagraphed-ui` Worker project (architecture section).
+  `metagraph-finder` Worker project (architecture section).
 - Ship the frontend handoff kit (Finding 4).
 - Performance pass: confirm compression and lean the heavy list payloads for
   browser use (Finding 8).
@@ -219,7 +236,7 @@ guarantees); and a handful of copy-paste example queries against the live beta.
 
 ## Open coordination items (not blockers)
 
-- Confirm the `metagraphed-ui` deploy target (its own Worker project + route).
+- Confirm the `metagraph-finder` deploy target (its own Worker project + route).
 - Decide whether to publish generated types as an npm package now or hand off
   files for beta.
 - Confirm the Cloudflare plan supports the WAF / Rate Limiting rules the RPC proxy
