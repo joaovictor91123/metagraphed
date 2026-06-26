@@ -151,6 +151,7 @@ export function validEventRows(rows) {
           Number.isInteger(r?.block_number) &&
           Number.isInteger(r?.event_index) &&
           typeof r?.event_kind === "string" &&
+          r.event_kind.length > 0 &&
           Number.isInteger(r?.observed_at),
       )
     : [];

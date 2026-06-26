@@ -38,6 +38,10 @@ test("validEventRows enforces the strict row shape (#1371)", () => {
     validEventRows([{ ...good, observed_at: "x" }]).length,
     0, // observed_at must be an integer
   );
+  assert.equal(
+    validEventRows([{ ...good, event_kind: "" }]).length,
+    0, // event_kind must be non-empty (mirrors block_hash guard)
+  );
 });
 
 test("eventInsertStatements builds chunked parameterized INSERT OR IGNORE", () => {
