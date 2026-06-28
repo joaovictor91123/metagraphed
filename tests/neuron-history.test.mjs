@@ -293,6 +293,49 @@ describe("history builders", () => {
     assert.deepEqual(out.days, []);
     assert.equal(out.window, null);
   });
+
+  test("buildEconomicsTrends drops the oldest day when capped=true to avoid a partial network snapshot", () => {
+    // Simulate the row cap being reached: three days where the oldest (2026-06-01)
+    // is incomplete because the LIMIT cut it off mid-subnet. With capped=true the
+    // builder must drop that day; without it all three are served.
+    const rows = [
+      {
+        snapshot_date: "2026-06-03",
+        total_stake_tao: 500,
+        alpha_price_tao: 0.05,
+        validator_count: 10,
+        miner_count: 40,
+        emission_share: 0.05,
+      },
+      {
+        snapshot_date: "2026-06-02",
+        total_stake_tao: 400,
+        alpha_price_tao: 0.04,
+        validator_count: 8,
+        miner_count: 30,
+        emission_share: 0.04,
+      },
+      // incomplete oldest day — only one of many subnets present
+      {
+        snapshot_date: "2026-06-01",
+        total_stake_tao: 50,
+        alpha_price_tao: 0.01,
+        validator_count: 1,
+        miner_count: 5,
+        emission_share: 0.01,
+      },
+    ];
+    const capped = buildEconomicsTrends(rows, { window: "7d", capped: true });
+    assert.equal(capped.day_count, 2);
+    assert.equal(capped.days[0].snapshot_date, "2026-06-03");
+    assert.equal(capped.days[1].snapshot_date, "2026-06-02");
+
+    const uncapped = buildEconomicsTrends(rows, {
+      window: "7d",
+      capped: false,
+    });
+    assert.equal(uncapped.day_count, 3);
+  });
 });
 
 describe("rollupNeuronDaily idempotency invariant (#1345)", () => {

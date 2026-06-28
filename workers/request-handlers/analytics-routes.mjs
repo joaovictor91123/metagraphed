@@ -120,7 +120,10 @@ export async function handleEconomicsTrends(request, env, url) {
   sql += " ORDER BY snapshot_date DESC LIMIT ?";
   params.push(ECONOMICS_TRENDS_ROW_CAP);
   const rows = await d1All(env, sql, params);
-  const data = buildEconomicsTrends(rows, { window: label });
+  const data = buildEconomicsTrends(rows, {
+    window: label,
+    capped: rows.length >= ECONOMICS_TRENDS_ROW_CAP,
+  });
   return envelopeWithD1Fallback(
     request,
     {
