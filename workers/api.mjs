@@ -88,6 +88,7 @@ import {
 } from "./request-handlers/entities.mjs";
 import {
   canonicalCompareCachePath,
+  canonicalEconomicsTrendsCachePath,
   canonicalUptimeCachePath,
   configureAnalyticsRoutes,
   handleCompare,
@@ -1512,8 +1513,13 @@ export async function handleRequest(request, env = {}, ctx = {}) {
     // (GROUP-BY-day over subnet_snapshots) — edge-cache on last_run_at like the
     // sibling history/trajectory routes; ?window rides the search into the key.
     if (resolved.url.pathname === "/api/v1/economics/trends") {
-      return withEdgeCache(request, ctx, env, "economics-trends", () =>
-        handleEconomicsTrends(request, env, resolved.url),
+      return withEdgeCache(
+        request,
+        ctx,
+        env,
+        "economics-trends",
+        () => handleEconomicsTrends(request, env, resolved.url),
+        canonicalEconomicsTrendsCachePath(resolved.url),
       );
     }
     return handleApiRequest(request, env, resolved.url, DEFAULT_NETWORK, ctx);
