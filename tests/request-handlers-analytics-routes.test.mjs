@@ -485,9 +485,7 @@ describe("canonicalUptimeCachePath", () => {
 describe("canonicalEconomicsTrendsCachePath", () => {
   test("normalizes bare path to explicit default window", () => {
     assert.equal(
-      canonicalEconomicsTrendsCachePath(
-        url("/api/v1/economics/trends"),
-      ),
+      canonicalEconomicsTrendsCachePath(url("/api/v1/economics/trends")),
       "/api/v1/economics/trends?window=30d",
     );
   });
