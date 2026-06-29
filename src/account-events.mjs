@@ -494,7 +494,7 @@ export async function loadAccountSummary(d1, ss58) {
 export async function loadAccountEvents(
   d1,
   ss58,
-  { limit, offset, kind, cursor } = {},
+  { limit, offset, kind, cursor, blockStart, blockEnd } = {},
 ) {
   const lim = clampLimit(limit, FEED_PAGINATION);
   const off = clampOffset(offset);
@@ -503,6 +503,17 @@ export async function loadAccountEvents(
   if (kind) {
     sql += " AND event_kind = ?";
     params.push(kind);
+  }
+  // Block-height range filter, parity with the extrinsics and chain-events
+  // feeds: the per-branch hotkey/coldkey indexes both lead block_number, so a
+  // bounded range stays index-satisfiable.
+  if (blockStart != null) {
+    sql += " AND block_number >= ?";
+    params.push(blockStart);
+  }
+  if (blockEnd != null) {
+    sql += " AND block_number <= ?";
+    params.push(blockEnd);
   }
   const cur = decodeCursor(cursor, 2);
   const useCursor = Boolean(cur);

@@ -469,16 +469,34 @@ export async function handleAccount(request, env, ss58) {
 export async function handleAccountEvents(request, env, ss58, url) {
   const validationError = validateQueryParams(url, [
     "kind",
+    "block_start",
+    "block_end",
     "limit",
     "offset",
     "cursor",
   ]);
   if (validationError) return analyticsQueryError(validationError);
+  // Optional block-height range filter, parity with the extrinsics and
+  // chain-events feeds. Index-satisfiable via idx_account_events_hotkey and
+  // idx_account_events_coldkey (each leads block_number), so a bounded range
+  // seeks rather than scans this public, ~60s-cached route.
+  const blockStart = parseNonNegativeIntParam(
+    url.searchParams.get("block_start"),
+    "block_start",
+  );
+  if (blockStart.error) return analyticsQueryError(blockStart.error);
+  const blockEnd = parseNonNegativeIntParam(
+    url.searchParams.get("block_end"),
+    "block_end",
+  );
+  if (blockEnd.error) return analyticsQueryError(blockEnd.error);
   const data = await loadAccountEvents(d1Runner(env), ss58, {
     limit: url.searchParams.get("limit"),
     offset: url.searchParams.get("offset"),
     kind: url.searchParams.get("kind"),
     cursor: url.searchParams.get("cursor"),
+    blockStart: blockStart.value,
+    blockEnd: blockEnd.value,
   });
   return envelopeResponse(
     request,

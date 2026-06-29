@@ -1308,6 +1308,28 @@ describe("handleAccountEvents", () => {
     await errorJson(res);
   });
 
+  test("rejects a non-integer block_start with 400", async () => {
+    const res = await handleAccountEvents(
+      req(`/api/v1/accounts/${SS58}/events`),
+      emptyEnv(),
+      SS58,
+      url(`/api/v1/accounts/${SS58}/events?block_start=abc`),
+    );
+    const body = await errorJson(res);
+    assert.equal(body.meta.parameter, "block_start");
+  });
+
+  test("rejects a non-integer block_end with 400", async () => {
+    const res = await handleAccountEvents(
+      req(`/api/v1/accounts/${SS58}/events`),
+      emptyEnv(),
+      SS58,
+      url(`/api/v1/accounts/${SS58}/events?block_end=oops`),
+    );
+    const body = await errorJson(res);
+    assert.equal(body.meta.parameter, "block_end");
+  });
+
   test("returns schema-stable empty events on cold D1", async () => {
     const body = await assertColdSchema(
       handleAccountEvents,
