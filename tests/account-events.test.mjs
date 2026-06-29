@@ -328,6 +328,12 @@ test("buildAccountSummary rounds activity.total_fee_tao to rao precision (#2351)
     activity: { tx_count: 0, total_fee_tao: null },
   });
   assert.equal(cold.activity.total_fee_tao, null);
+
+  // A non-finite aggregate (e.g. a non-numeric cell) is nulled, not NaN.
+  const bad = buildAccountSummary("5Hk", {
+    activity: { tx_count: 1, total_fee_tao: "not-a-number" },
+  });
+  assert.equal(bad.activity.total_fee_tao, null);
 });
 
 test("account builders null invalid block heights and indices", () => {
