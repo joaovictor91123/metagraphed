@@ -393,6 +393,21 @@ describe("feeds — item builders", () => {
     assert.ok(item.tags.includes("resolved"));
   });
 
+  test("incidentItems uses a request-time ISO timestamp when both dates are absent", () => {
+    const incidents = {
+      surfaces: [
+        {
+          netuid: 1,
+          surface_id: "api",
+          incidents: [{}],
+        },
+      ],
+    };
+    const item = incidentItems(incidents)[0];
+    assert.ok(Number.isFinite(Date.parse(item.timestamp)));
+    assert.ok(item.tags.includes("ongoing"));
+  });
+
   test("gapsItems builds ranked enrichment targets with lane/kind tags", () => {
     const items = gapsItems(ENRICHMENT_QUEUE);
     assert.equal(items.length, 3);
