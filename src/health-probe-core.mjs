@@ -87,12 +87,16 @@ const UNSAFE_IPV6_LITERAL_PATTERNS = [
   /^f[cd][0-9a-f]{2}:/i,
 ];
 
-// Classify a bare (bracket-stripped) host as an unsafe literal target. IPv6
-// literal rules only apply to colon-bearing hosts so a public `fd*`/`fc*` domain
-// is not mistaken for a unique-local IPv6 address.
-function isUnsafeLiteralHost(host) {
+function isIpv6LiteralHost(host) {
+  return host.includes(":");
+}
+
+// Classify a bare (bracket-stripped) host as an unsafe target. IPv6 literal
+// rules only apply to colon-bearing hosts so a public `fd*`/`fc*` domain is not
+// mistaken for a unique-local IPv6 address.
+function isUnsafeHost(host) {
   if (
-    host.includes(":") &&
+    isIpv6LiteralHost(host) &&
     UNSAFE_IPV6_LITERAL_PATTERNS.some((pattern) => pattern.test(host))
   ) {
     return true;
@@ -119,10 +123,10 @@ export function isUnsafePublicUrl(value) {
     // target — e.g. ::ffff:169.254.169.254 (cloud metadata) — from the prefix
     // patterns. Re-check the embedded v4 against the same ranges.
     const embedded = ipv6EmbeddedIpv4(host);
-    if (embedded && isUnsafeLiteralHost(embedded.join("."))) {
+    if (embedded && isUnsafeHost(embedded.join("."))) {
       return true;
     }
-    return isUnsafeLiteralHost(host);
+    return isUnsafeHost(host);
   } catch {
     return true;
   }

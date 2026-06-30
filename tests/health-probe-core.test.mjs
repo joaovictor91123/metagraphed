@@ -155,7 +155,9 @@ describe("isUnsafePublicUrl", () => {
       "https://fd.io/x",
       "https://fdroid.org/x",
       "https://fdic.gov/x",
+      "https://fc00.example.com/x",
       "https://fc-bank.example/x",
+      "https://fdff.example.com/x",
       "wss://fde.example.com:443",
     ]) {
       assert.equal(isUnsafePublicUrl(url), false, url);
