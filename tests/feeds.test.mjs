@@ -209,11 +209,17 @@ describe("feeds — item builders", () => {
   });
 
   test("registryItems renamed entry with a missing side renders a placeholder", () => {
-    const items = registryItems({
+    const afterOnly = registryItems({
       subnets: { renamed: [{ netuid: 5, after: "Fresh" }] },
     });
-    assert.equal(items.length, 1);
-    assert.equal(items[0].title, "Subnet 5 renamed — ? → Fresh");
+    assert.equal(afterOnly.length, 1);
+    assert.equal(afterOnly[0].title, "Subnet 5 renamed — ? → Fresh");
+
+    const beforeOnly = registryItems({
+      subnets: { renamed: [{ netuid: 6, before: "Stale" }] },
+    });
+    assert.equal(beforeOnly.length, 1);
+    assert.equal(beforeOnly[0].title, "Subnet 6 renamed — Stale → ?");
   });
 
   test("registryItems filtered by netuid omits artifacts + coverage", () => {
