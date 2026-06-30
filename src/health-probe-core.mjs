@@ -51,8 +51,12 @@ export const OPERATIONAL_SURFACE_KINDS = [
 // build injects the stronger DNS-aware `isUnsafeResolvedUrl` from scripts/lib.mjs.
 // Operational surfaces are already curated `public_safe`, so this is defense in
 // depth, not the primary control.
-// IPv4 / registrable-domain unsafe prefixes. Their leading characters can never
-// collide with a public hostname, so they are matched against EVERY host.
+// IPv4 private-range and reserved-name prefixes, matched against EVERY host.
+// These are intentionally conservative: a host that leads with a private IPv4
+// prefix or a reserved suffix (e.g. the numeric-label `172.16.example.com`) is
+// treated as unsafe even on the rare chance it is a registrable name, since the
+// Worker guard has no DNS to disambiguate it. The IPv6-literal ranges, by
+// contrast, are NOT applied to every host (see UNSAFE_IPV6_LITERAL_PATTERNS).
 const UNSAFE_HOST_PATTERNS = [
   /^localhost$/i,
   /\.localhost$/i,
