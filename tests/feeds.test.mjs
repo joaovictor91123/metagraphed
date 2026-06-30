@@ -192,6 +192,30 @@ describe("feeds — item builders", () => {
     }
   });
 
+  test("registryItems renders a renamed subnet's before/after (issue #2379)", () => {
+    // diffSubnets emits renames as { netuid, before, after } (no `name`).
+    const items = registryItems({
+      generated_at: "2026-06-15T00:00:00.000Z",
+      subnets: {
+        renamed: [{ netuid: 12, before: "OldName", after: "NewName" }],
+      },
+    });
+    assert.equal(items.length, 1);
+    assert.equal(items[0].title, "Subnet 12 renamed — OldName → NewName");
+    assert.equal(
+      items[0].summary,
+      "Subnet 12 renamed from OldName to NewName in the registry.",
+    );
+  });
+
+  test("registryItems renamed entry with a missing side renders a placeholder", () => {
+    const items = registryItems({
+      subnets: { renamed: [{ netuid: 5, after: "Fresh" }] },
+    });
+    assert.equal(items.length, 1);
+    assert.equal(items[0].title, "Subnet 5 renamed — ? → Fresh");
+  });
+
   test("registryItems filtered by netuid omits artifacts + coverage", () => {
     const items = registryItems(CHANGELOG, 7);
     assert.equal(items.length, 1);
