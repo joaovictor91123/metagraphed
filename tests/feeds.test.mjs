@@ -349,6 +349,35 @@ describe("feeds — item builders", () => {
     assert.equal(incidentItems(null).length, 0);
   });
 
+  test("resolved incidents filter on started_at, not ended_at, for ?until= windows", () => {
+    const incidents = {
+      surfaces: [
+        {
+          netuid: 7,
+          surface_id: "api",
+          incidents: [
+            {
+              started_at: Date.parse("2026-06-12T00:00:00.000Z"),
+              ended_at: Date.parse("2026-06-20T00:00:00.000Z"),
+              duration_ms: 8 * 24 * 60 * 60 * 1000,
+            },
+          ],
+        },
+      ],
+    };
+    const item = incidentItems(incidents)[0];
+    assert.equal(item.timestamp, "2026-06-12T00:00:00.000Z");
+    // Incident was active during June 15; ?until=2026-06-15 (inclusive UTC day)
+    // must keep it even though it ended on the 20th.
+    const untilMs = Date.parse("2026-06-15T23:59:59.999Z");
+    const kept = filterUntil([item], untilMs);
+    assert.equal(
+      kept.length,
+      1,
+      "must not drop once resolved_at moves past until",
+    );
+  });
+
   test("gapsItems builds ranked enrichment targets with lane/kind tags", () => {
     const items = gapsItems(ENRICHMENT_QUEUE);
     assert.equal(items.length, 3);
