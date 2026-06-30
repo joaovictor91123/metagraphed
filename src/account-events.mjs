@@ -503,7 +503,7 @@ export async function loadAccountSummary(d1, ss58) {
         kindUnion.paramsFor(ss58),
       ),
       d1(
-        `SELECT ${REGISTRATION_COLUMNS} FROM neurons WHERE hotkey = ? ORDER BY stake_tao DESC`,
+        `SELECT ${REGISTRATION_COLUMNS} FROM neurons WHERE hotkey = ? ORDER BY stake_tao DESC, netuid ASC`,
         [ss58],
       ),
       d1(

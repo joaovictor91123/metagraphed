@@ -730,6 +730,11 @@ test("loadAccountSummary tie-breaks leaderboard aggregates for stable output", a
       modules.sql,
     ),
   );
+  const regs = calls.find((c) => /FROM neurons WHERE hotkey = \?/.test(c.sql));
+  assert.ok(
+    /ORDER BY stake_tao DESC, netuid ASC/.test(regs.sql),
+    "registration list must tie-break equal stakes by netuid",
+  );
 });
 
 test("loadAccountSummary uses indexed union seeks for account_events (#2059)", async () => {
