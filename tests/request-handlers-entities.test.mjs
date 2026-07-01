@@ -1625,6 +1625,23 @@ describe("handleAccountEvents", () => {
     assert.equal(body.meta.parameter, "block_end");
   });
 
+  test("short-circuits inverted block_start/block_end before querying D1", async () => {
+    const { env, captures } = dbWith({
+      accountEvents: [accountEventRow()],
+    });
+    const body = await json(
+      await handleAccountEvents(
+        req(`/api/v1/accounts/${SS58}/events`),
+        env,
+        SS58,
+        url(`/api/v1/accounts/${SS58}/events?block_start=900&block_end=100`),
+      ),
+    );
+    assert.equal(body.data.event_count, 0);
+    assert.deepEqual(body.data.events, []);
+    assert.equal(captures.sql.length, 0);
+  });
+
   test("returns schema-stable empty events on cold D1", async () => {
     const body = await assertColdSchema(
       handleAccountEvents,
@@ -1815,6 +1832,23 @@ describe("handleAccountExtrinsics", () => {
     assert.equal(body.meta.parameter, "block_end");
   });
 
+  test("short-circuits inverted block_start/block_end before querying D1", async () => {
+    const { env, captures } = dbWith({ extrinsics: [extrinsicRow()] });
+    const body = await json(
+      await handleAccountExtrinsics(
+        req(`/api/v1/accounts/${SS58}/extrinsics`),
+        env,
+        SS58,
+        url(
+          `/api/v1/accounts/${SS58}/extrinsics?block_start=900&block_end=100`,
+        ),
+      ),
+    );
+    assert.equal(body.data.extrinsic_count, 0);
+    assert.deepEqual(body.data.extrinsics, []);
+    assert.equal(captures.sql.length, 0);
+  });
+
   test("happy path returns signer-matched extrinsics", async () => {
     const { env } = dbWith({ extrinsics: [extrinsicRow()] });
     const body = await json(
@@ -1933,6 +1967,23 @@ describe("handleAccountTransfers", () => {
     );
     const body = await errorJson(res);
     assert.equal(body.meta.parameter, "block_end");
+  });
+
+  test("short-circuits inverted block_start/block_end before querying D1", async () => {
+    const { env, captures } = dbWith({
+      transfers: [transferEventRow()],
+    });
+    const body = await json(
+      await handleAccountTransfers(
+        req(`/api/v1/accounts/${SS58}/transfers`),
+        env,
+        SS58,
+        url(`/api/v1/accounts/${SS58}/transfers?block_start=900&block_end=100`),
+      ),
+    );
+    assert.equal(body.data.transfer_count, 0);
+    assert.deepEqual(body.data.transfers, []);
+    assert.equal(captures.sql.length, 0);
   });
 
   test("returns schema-stable empty transfers on cold D1", async () => {
@@ -2502,6 +2553,23 @@ describe("handleSubnetEvents", () => {
     );
     const body = await errorJson(res);
     assert.equal(body.meta.parameter, "block_end");
+  });
+
+  test("short-circuits inverted block_start/block_end before querying D1", async () => {
+    const { env, captures } = dbWith({
+      subnetEvents: [accountEventRow()],
+    });
+    const body = await json(
+      await handleSubnetEvents(
+        req(`/api/v1/subnets/${NETUID}/events`),
+        env,
+        NETUID,
+        url(`/api/v1/subnets/${NETUID}/events?block_start=900&block_end=100`),
+      ),
+    );
+    assert.equal(body.data.event_count, 0);
+    assert.deepEqual(body.data.events, []);
+    assert.equal(captures.sql.length, 0);
   });
 
   test("cursor uses keyset seek instead of offset", async () => {

@@ -25,6 +25,7 @@ import {
   parseDateRange,
   parseNonNegativeIntParam,
   parsePagination,
+  isInvertedBlockRange,
 } from "../request-params.mjs";
 
 import { errorResponse } from "../http.mjs";
@@ -54,6 +55,7 @@ import {
 import {
   ACCOUNT_EVENT_COLUMNS,
   INGESTED_EVENT_KINDS,
+  buildAccountEvents,
   buildAccountTransfers,
   buildAccountHistory,
   buildSubnetEvents,
@@ -78,6 +80,7 @@ import {
   EXTRINSIC_RETENTION_MS,
   buildExtrinsic,
   buildExtrinsicFeed,
+  buildAccountExtrinsics,
 } from "../../src/extrinsics.mjs";
 import {
   loadBlockEvents,
@@ -693,6 +696,26 @@ export async function handleAccountEvents(request, env, ss58, url) {
     "block_end",
   );
   if (blockEnd.error) return analyticsQueryError(blockEnd.error);
+  if (isInvertedBlockRange(blockStart.value, blockEnd.value)) {
+    const { limit, offset } = parsePagination(url, FEED_PAGINATION);
+    const data = buildAccountEvents([], ss58, {
+      limit,
+      offset,
+      nextCursor: null,
+    });
+    return envelopeResponse(
+      request,
+      {
+        data,
+        meta: await accountMeta(
+          env,
+          `/metagraph/accounts/${ss58}/events.json`,
+          null,
+        ),
+      },
+      "short",
+    );
+  }
   const data = await loadAccountEvents(d1Runner(env), ss58, {
     limit: url.searchParams.get("limit"),
     offset: url.searchParams.get("offset"),
@@ -839,6 +862,26 @@ export async function handleAccountExtrinsics(request, env, ss58, url) {
     "block_end",
   );
   if (blockEnd.error) return analyticsQueryError(blockEnd.error);
+  if (isInvertedBlockRange(blockStart.value, blockEnd.value)) {
+    const { limit, offset } = parsePagination(url, FEED_PAGINATION);
+    const data = buildAccountExtrinsics([], ss58, {
+      limit,
+      offset,
+      nextCursor: null,
+    });
+    return envelopeResponse(
+      request,
+      {
+        data,
+        meta: await accountMeta(
+          env,
+          `/metagraph/accounts/${ss58}/extrinsics.json`,
+          null,
+        ),
+      },
+      "short",
+    );
+  }
   const data = await loadAccountExtrinsics(d1Runner(env), ss58, {
     limit: url.searchParams.get("limit"),
     offset: url.searchParams.get("offset"),
@@ -900,6 +943,27 @@ export async function handleAccountTransfers(request, env, ss58, url) {
     "block_end",
   );
   if (blockEnd.error) return analyticsQueryError(blockEnd.error);
+  if (isInvertedBlockRange(blockStart.value, blockEnd.value)) {
+    const data = buildAccountTransfers([], ss58, {
+      limit,
+      offset,
+      nextCursor: null,
+      direction:
+        direction === "sent" || direction === "received" ? direction : null,
+    });
+    return envelopeResponse(
+      request,
+      {
+        data,
+        meta: await accountMeta(
+          env,
+          `/metagraph/accounts/${ss58}/transfers.json`,
+          null,
+        ),
+      },
+      "short",
+    );
+  }
   // sent => this account is the sender (hotkey=from); received => recipient
   // (coldkey=to); default/all => either side. Keep the default read as two
   // side-specific seeks rather than an OR predicate so D1 cannot satisfy only
@@ -1089,6 +1153,25 @@ export async function handleSubnetEvents(request, env, netuid, url) {
     "block_end",
   );
   if (blockEnd.error) return analyticsQueryError(blockEnd.error);
+  if (isInvertedBlockRange(blockStart.value, blockEnd.value)) {
+    const data = buildSubnetEvents([], netuid, {
+      limit,
+      offset,
+      nextCursor: null,
+    });
+    return envelopeResponse(
+      request,
+      {
+        data,
+        meta: await accountMeta(
+          env,
+          `/metagraph/subnets/${netuid}/events.json`,
+          null,
+        ),
+      },
+      "short",
+    );
+  }
   // Keyset (cursor) pagination on (block_number, event_index), mirroring
   // loadAccountEvents; offset stays as a deprecated fallback, cursor wins.
   const cur = decodeCursor(cursor, 2);

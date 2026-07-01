@@ -113,6 +113,12 @@ export function parseNonNegativeIntParam(raw, parameter) {
   return { value };
 }
 
+// True when both block bounds are present but start > end — a deterministic
+// no-match range. Handlers short-circuit before D1 (mirrors handleBlocks).
+export function isInvertedBlockRange(blockStart, blockEnd) {
+  return blockStart != null && blockEnd != null && blockStart > blockEnd;
+}
+
 export function parseDateRange(url) {
   const from = url.searchParams.get("from");
   const to = url.searchParams.get("to");
