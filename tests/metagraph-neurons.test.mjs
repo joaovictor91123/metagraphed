@@ -44,6 +44,18 @@ describe("metagraph-neurons builders", () => {
     assert.equal(n.axon, "1.2.3.4:8091");
   });
 
+  test("formatNeuron treats numeric-string zero flags as false", () => {
+    const n = formatNeuron({
+      ...ROW,
+      active: "0",
+      validator_permit: "0",
+      is_immunity_period: "0",
+    });
+    assert.equal(n.active, false);
+    assert.equal(n.validator_permit, false);
+    assert.equal(n.is_immunity_period, false);
+  });
+
   test("formatNeuron is null-safe", () => {
     assert.equal(formatNeuron(null), null);
     assert.equal(formatNeuron(undefined), null);
@@ -101,6 +113,16 @@ describe("metagraph-neurons builders", () => {
     const vals = buildSubnetValidators([ROW, null], 7);
     assert.equal(vals.validators.length, 1);
     assert.equal(vals.validator_count, 1);
+  });
+
+  test("snapshot metadata comes from the first valid neuron row, not rows[0]", () => {
+    const data = buildSubnetMetagraph([null, ROW], 7);
+    assert.equal(data.neuron_count, 1);
+    assert.equal(data.captured_at, new Date(ROW.captured_at).toISOString());
+    assert.equal(data.block_number, ROW.block_number);
+    const vals = buildSubnetValidators([null, ROW], 7);
+    assert.equal(vals.captured_at, new Date(ROW.captured_at).toISOString());
+    assert.equal(vals.block_number, ROW.block_number);
   });
 
   test("buildNeuronDetail returns neuron:null for a cold/absent row", () => {
