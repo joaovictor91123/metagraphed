@@ -431,12 +431,15 @@ async function apisContent({ target, readArtifact, env }) {
     );
     const netuids = findProvider(providers, target.slug)?.netuids || [];
     if (netuids.length) {
-      const counts = (
-        await Promise.all(
-          netuids.map((n) => callableApiCount(readArtifact, env, n)),
-        )
-      ).filter((c) => typeof c === "number");
-      if (counts.length) count = counts.reduce((a, b) => a + b, 0);
+      const counts = await Promise.all(
+        netuids.map((n) => callableApiCount(readArtifact, env, n)),
+      );
+      const numeric = counts.filter((c) => typeof c === "number");
+      // Sum only when every subnet resolved a surfaces artifact. A partial sum
+      // would under-report one missing subnet as a lower total instead of n/a.
+      if (numeric.length === netuids.length) {
+        count = numeric.reduce((a, b) => a + b, 0);
+      }
     }
   }
   if (count == null) return NA_CONTENT;

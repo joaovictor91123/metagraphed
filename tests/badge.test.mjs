@@ -500,6 +500,23 @@ describe("badge — apis metric", () => {
     assert.match(text, /#007ec6/);
   });
 
+  test("provider apis is n/a when any subnet lacks a surfaces artifact", async () => {
+    const { text } = await badge(
+      "/api/v1/providers/partial/badge.svg?metric=apis",
+      {
+        fixtures: {
+          "/metagraph/providers.json": {
+            providers: [{ slug: "partial", netuids: [7, 9] }],
+          },
+        },
+      },
+    );
+    // netuid 7 has 2 callable surfaces; netuid 9 has no artifact — must not
+    // headline the partial sum (2) as the provider total.
+    assert.match(text, /n\/a/);
+    assert.match(text, /#9f9f9f/);
+  });
+
   test("a subnet with no surfaces artifact degrades to n/a (still 200)", async () => {
     const { res, text } = await badge(
       "/api/v1/subnets/9/badge.svg?metric=apis",
