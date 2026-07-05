@@ -195,6 +195,11 @@ import {
   DEFAULT_ACCOUNT_WEIGHT_SETTERS_WINDOW,
 } from "../../src/account-weight-setters.mjs";
 import {
+  loadAccountStakeTransfers,
+  ACCOUNT_STAKE_TRANSFERS_WINDOWS,
+  DEFAULT_ACCOUNT_STAKE_TRANSFERS_WINDOW,
+} from "../../src/account-stake-transfers.mjs";
+import {
   loadAccountRegistrations,
   REGISTRATION_WINDOWS,
   DEFAULT_REGISTRATION_WINDOW,
@@ -2078,6 +2083,45 @@ export async function handleAccountWeightSetters(request, env, ss58, url) {
       meta: await accountMeta(
         env,
         `/metagraph/accounts/${ss58}/weight-setters.json`,
+        generatedAt,
+      ),
+    },
+    "short",
+  );
+}
+
+// GET /api/v1/accounts/{ss58}/stake-transfers: the account's per-subnet StakeTransferred
+// footprint over a 7d/30d/90d window — transfer count + first/last timestamps per subnet, an
+// HHI concentration of where its outbound stake transfers are focused, and the dominant subnet.
+// Origin-side only (this account is the sender; the destination leg is dropped at ingest, see
+// src/account-stake-transfers.mjs). account_events-derived (source "chain-events"). Cold/absent
+// store → schema-stable zeros.
+export async function handleAccountStakeTransfers(request, env, ss58, url) {
+  const validationError = validateQueryParams(url, ["window"]);
+  if (validationError) return analyticsQueryError(validationError);
+  const windowParam =
+    url.searchParams.get("window") || DEFAULT_ACCOUNT_STAKE_TRANSFERS_WINDOW;
+  if (!Object.hasOwn(ACCOUNT_STAKE_TRANSFERS_WINDOWS, windowParam)) {
+    return analyticsQueryError({
+      parameter: "window",
+      message: unsupportedWindowMessage(
+        windowParam,
+        ACCOUNT_STAKE_TRANSFERS_WINDOWS,
+      ),
+    });
+  }
+  const { data, generatedAt } = await loadAccountStakeTransfers(
+    d1Runner(env),
+    ss58,
+    { windowLabel: windowParam },
+  );
+  return accountEnvelopeResponse(
+    request,
+    {
+      data,
+      meta: await accountMeta(
+        env,
+        `/metagraph/accounts/${ss58}/stake-transfers.json`,
         generatedAt,
       ),
     },
