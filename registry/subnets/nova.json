@@ -234,6 +234,150 @@
         "https://github.com/metanova-labs/nova"
       ],
       "url": "https://raw.githubusercontent.com/metanova-labs/nova/f7a313bc7d17bbd64b42c670c5c04a62d9b4599d/config/config.yaml"
+    },
+    {
+      "auth_required": false,
+      "authority": "community",
+      "id": "sn-68-nova-jobs-job-id",
+      "kind": "subnet-api",
+      "name": "NOVA jobs job id",
+      "notes": "Get Job Status operation on the NOVA validator score-share API (GET /api/v1/jobs/{job_id}), declared in the subnet's own OpenAPI spec at https://vali-score-share-api.metanova-labs.ai/openapi.json. Path-parameterized on {job_id}, so there is no single fixed callable URL; the template is registered per the registry's catalog-everything policy (Phase 2).",
+      "probe": {
+        "enabled": false,
+        "expect": "json",
+        "method": "GET",
+        "timeout_ms": 10000
+      },
+      "provider": "nova",
+      "public_safe": true,
+      "review": {
+        "state": "community-submitted",
+        "submitted_by": "joaovictor91123"
+      },
+      "source_urls": [
+        "https://vali-score-share-api.metanova-labs.ai/openapi.json"
+      ],
+      "url": "https://vali-score-share-api.metanova-labs.ai/api/v1/jobs/%7Bjob_id%7D"
+    },
+    {
+      "auth_required": false,
+      "authority": "community",
+      "id": "sn-68-nova-molecule-targets-name-epoch",
+      "kind": "subnet-api",
+      "name": "NOVA molecule targets name epoch",
+      "notes": "Get Molecule Target Averages Endpoint operation on the NOVA validator score-share API (GET /api/v1/molecule-targets/{name}/{epoch}), declared in the subnet's own OpenAPI spec at https://vali-score-share-api.metanova-labs.ai/openapi.json. Path-parameterized on {name}, {epoch}, so there is no single fixed callable URL; the template is registered per the registry's catalog-everything policy (Phase 2).",
+      "probe": {
+        "enabled": false,
+        "expect": "json",
+        "method": "GET",
+        "timeout_ms": 10000
+      },
+      "provider": "nova",
+      "public_safe": true,
+      "review": {
+        "state": "community-submitted",
+        "submitted_by": "joaovictor91123"
+      },
+      "source_urls": [
+        "https://vali-score-share-api.metanova-labs.ai/openapi.json"
+      ],
+      "url": "https://vali-score-share-api.metanova-labs.ai/api/v1/molecule-targets/%7Bname%7D/%7Bepoch%7D"
+    },
+    {
+      "auth_required": false,
+      "authority": "community",
+      "id": "sn-68-nova-molecule-targets-name-epoch-validations",
+      "kind": "subnet-api",
+      "name": "NOVA molecule targets name epoch validations",
+      "notes": "Get Molecule Target Validations Endpoint operation on the NOVA validator score-share API (GET /api/v1/molecule-targets/{name}/{epoch}/validations), declared in the subnet's own OpenAPI spec at https://vali-score-share-api.metanova-labs.ai/openapi.json. Path-parameterized on {name}, {epoch}, so there is no single fixed callable URL; the template is registered per the registry's catalog-everything policy (Phase 2).",
+      "probe": {
+        "enabled": false,
+        "expect": "json",
+        "method": "GET",
+        "timeout_ms": 10000
+      },
+      "provider": "nova",
+      "public_safe": true,
+      "review": {
+        "state": "community-submitted",
+        "submitted_by": "joaovictor91123"
+      },
+      "source_urls": [
+        "https://vali-score-share-api.metanova-labs.ai/openapi.json"
+      ],
+      "url": "https://vali-score-share-api.metanova-labs.ai/api/v1/molecule-targets/%7Bname%7D/%7Bepoch%7D/validations"
+    },
+    {
+      "auth_required": false,
+      "authority": "community",
+      "id": "sn-68-nova-nanobodies-sequence-hash-epoch",
+      "kind": "subnet-api",
+      "name": "NOVA nanobodies sequence hash epoch",
+      "notes": "Get Nanobody Target Averages Endpoint operation on the NOVA validator score-share API (GET /api/v1/nanobodies/{sequence_hash}/{epoch}), declared in the subnet's own OpenAPI spec at https://vali-score-share-api.metanova-labs.ai/openapi.json. Path-parameterized on {sequence_hash}, {epoch}, so there is no single fixed callable URL; the template is registered per the registry's catalog-everything policy (Phase 2).",
+      "probe": {
+        "enabled": false,
+        "expect": "json",
+        "method": "GET",
+        "timeout_ms": 10000
+      },
+      "provider": "nova",
+      "public_safe": true,
+      "review": {
+        "state": "community-submitted",
+        "submitted_by": "joaovictor91123"
+      },
+      "source_urls": [
+        "https://vali-score-share-api.metanova-labs.ai/openapi.json"
+      ],
+      "url": "https://vali-score-share-api.metanova-labs.ai/api/v1/nanobodies/%7Bsequence_hash%7D/%7Bepoch%7D"
+    },
+    {
+      "auth_required": false,
+      "authority": "community",
+      "id": "sn-68-nova-nanobodies-sequence-hash-epoch-validations",
+      "kind": "subnet-api",
+      "name": "NOVA nanobodies sequence hash epoch validations",
+      "notes": "Get Nanobody Validations Endpoint operation on the NOVA validator score-share API (GET /api/v1/nanobodies/{sequence_hash}/{epoch}/validations), declared in the subnet's own OpenAPI spec at https://vali-score-share-api.metanova-labs.ai/openapi.json. Path-parameterized on {sequence_hash}, {epoch}, so there is no single fixed callable URL; the template is registered per the registry's catalog-everything policy (Phase 2).",
+      "probe": {
+        "enabled": false,
+        "expect": "json",
+        "method": "GET",
+        "timeout_ms": 10000
+      },
+      "provider": "nova",
+      "public_safe": true,
+      "review": {
+        "state": "community-submitted",
+        "submitted_by": "joaovictor91123"
+      },
+      "source_urls": [
+        "https://vali-score-share-api.metanova-labs.ai/openapi.json"
+      ],
+      "url": "https://vali-score-share-api.metanova-labs.ai/api/v1/nanobodies/%7Bsequence_hash%7D/%7Bepoch%7D/validations"
+    },
+    {
+      "auth_required": false,
+      "authority": "community",
+      "id": "sn-68-nova-validations-batch",
+      "kind": "subnet-api",
+      "name": "NOVA validations batch",
+      "notes": "Create Batch Validations Endpoint operation on the NOVA validator score-share API (POST /api/v1/validations/batch), declared in the subnet's own OpenAPI spec at https://vali-score-share-api.metanova-labs.ai/openapi.json. The spec declares no security on it; it is a state-changing POST and not probe-safe, so the probe is disabled and no auth requirement is asserted without evidence.",
+      "probe": {
+        "enabled": false,
+        "expect": "json",
+        "method": "GET",
+        "timeout_ms": 10000
+      },
+      "provider": "nova",
+      "public_safe": true,
+      "review": {
+        "state": "community-submitted",
+        "submitted_by": "joaovictor91123"
+      },
+      "source_urls": [
+        "https://vali-score-share-api.metanova-labs.ai/openapi.json"
+      ],
+      "url": "https://vali-score-share-api.metanova-labs.ai/api/v1/validations/batch"
     }
   ],
   "source_repo": "https://github.com/metanova-labs/nova",
